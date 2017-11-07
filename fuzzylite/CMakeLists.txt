@@ -1,10 +1,17 @@
 cmake_minimum_required(VERSION 2.8.8)
+set(FL_VERISON 6.0)
 
 if (APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.9)
 endif()
 
-project(fuzzylite CXX)
+if(${CMAKE_VERSION} VERSION_LESS "3.0.2") 
+    project(fuzzylite CXX)
+    set(PROJECT_VERSION ${FL_VERSION})
+else()
+    cmake_policy(SET CMP0048 NEW)
+    project(fuzzylite VERSION ${FL_VERSION} LANGUAGES CXX)
+endif()
 
 
 if (APPLE)
@@ -173,14 +180,14 @@ if(FL_BUILD_SHARED)
     set_target_properties(fl-shared PROPERTIES OUTPUT_NAME fuzzylite)
     set_target_properties(fl-shared PROPERTIES DEBUG_POSTFIX -debug)
     target_compile_definitions(fl-shared PRIVATE FL_EXPORT_LIBRARY)
-    set_target_properties(fl-shared PROPERTIES VERSION 6.0)
+    set_target_properties(fl-shared PROPERTIES VERSION ${FL_VERISON})
     target_link_libraries(fl-shared ${FL_LIBS})
 endif()
 
 if(FL_BUILD_STATIC)
     set_target_properties(fl-static PROPERTIES OUTPUT_NAME fuzzylite-static)
     set_target_properties(fl-static PROPERTIES DEBUG_POSTFIX -debug)
-    set_target_properties(fl-static PROPERTIES VERSION 6.0)
+    set_target_properties(fl-static PROPERTIES VERSION ${FL_VERISON})
     target_link_libraries(fl-static ${FL_LIBS})
 endif()
 
@@ -266,7 +273,7 @@ configure_file(${CMAKE_SOURCE_DIR}/fuzzylite.pc.in ${CMAKE_BINARY_DIR}/fuzzylite
 install(FILES ${CMAKE_BINARY_DIR}/fuzzylite.pc DESTINATION ${FL_INSTALL_LIBDIR}/pkgconfig)
 
 message("=====================================")
-message("fuzzylite v6.0\n")
+message("fuzzylite v${FL_VERISON}\n")
 message("FL_CPP98=${FL_CPP98}")
 message("FL_USE_FLOAT=${FL_USE_FLOAT}")
 message("FL_BACKTRACE=${FL_BACKTRACE}")
