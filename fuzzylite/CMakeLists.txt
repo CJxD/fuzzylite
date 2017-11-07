@@ -1,23 +1,25 @@
 cmake_minimum_required(VERSION 2.8)
+set(FL_VERISON 5.1)
 
-cmake_policy(SET CMP0048 OLD)
-set(PROJECT_VERSION_MAJOR 5)
-set(PROJECT_VERSION_MINOR 1)
-set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
-project(fuzzylite CXX)
+if(${CMAKE_VERSION} VERSION_LESS "3.0.2") 
+    project(fuzzylite CXX)
+    set(PROJECT_VERSION ${FL_VERSION})
+else()
+    cmake_policy(SET CMP0048 NEW)
+    project(fuzzylite VERSION ${FL_VERSION} LANGUAGES CXX)
+endif()
 
 ###DEFINES SECTION
 if(NOT CMAKE_VERBOSE_MAKEFILE)
     set(CMAKE_VERBOSE_MAKEFILE false)
 endif()
 
-set(FL_VERSION ${PROJECT_VERSION})
 add_definitions(-DFL_VERSION="${FL_VERSION}")
 
 set(FL_DATE "1507")
 add_definitions(-DFL_DATE="${FL_DATE}")
 
-add_definitions(-DFL_BUILD_PATH="${CMAKE_SOURCE_DIR}") #used to determine FL__FILE__
+add_definitions(-DFL_BUILD_PATH="${PROJECT_SOURCE_DIR}") #used to determine FL__FILE__
 
 option(FL_BUILD_SHARED "Build shared library" ON)
 option(FL_BUILD_STATIC "Build static library" ON)
@@ -186,8 +188,8 @@ endif()
 install(DIRECTORY fl/ DESTINATION include/fl)
 
 #pkg-config
-configure_file(${CMAKE_SOURCE_DIR}/fuzzylite.pc.in ${CMAKE_BINARY_DIR}/fuzzylite.pc @ONLY)
-install(FILES ${CMAKE_BINARY_DIR}/fuzzylite.pc DESTINATION lib/pkgconfig)
+configure_file(${PROJECT_SOURCE_DIR}/fuzzylite.pc.in ${PROJECT_BINARY_DIR}/fuzzylite.pc @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/fuzzylite.pc DESTINATION ${FL_INSTALL_LIBDIR}/pkgconfig)
 
 message("=====================================")
 message("fuzzylite v.${FL_VERSION}b${FL_DATE}\n")
