@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 set(FL_VERISON 5.1)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.0.2") 
@@ -82,7 +82,6 @@ endif()
 
 ###BUILD SECTION
 
-include_directories(.)
 if (APPLE)
     cmake_policy(SET CMP0042 NEW)
 endif()
@@ -92,6 +91,8 @@ file(STRINGS FL_SOURCES fl-sources)
 
 string(REGEX REPLACE "\n" " " ${fl-headers} ${fl-headers})
 string(REGEX REPLACE "\n" " " ${fl-sources} ${fl-sources})
+
+list(APPEND fl-targets "")
 
 message("${exepath}")
 
@@ -124,29 +125,49 @@ else()
 endif()
 
 if(FL_BUILD_SHARED)
+    target_include_directories(fl-shared
+    PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>)
     set_target_properties(fl-shared PROPERTIES OUTPUT_NAME fuzzylite)
     set_target_properties(fl-shared PROPERTIES DEBUG_POSTFIX d)
     set_target_properties(fl-shared PROPERTIES COMPILE_DEFINITIONS "FL_EXPORT_LIBRARY")
     set_target_properties(fl-shared PROPERTIES VERSION 5.1)
     target_link_libraries(fl-shared ${FL_LIBS})
+    list(APPEND fl-targets fl-shared)
 endif()
 
 if(FL_BUILD_STATIC)
+    target_include_directories(fl-shared
+    PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>)
     set_target_properties(fl-static PROPERTIES OUTPUT_NAME fuzzylite-static)
     set_target_properties(fl-static PROPERTIES DEBUG_POSTFIX d)
     set_target_properties(fl-static PROPERTIES VERSION 5.1)
     target_link_libraries(fl-static ${FL_LIBS})
+    list(APPEND fl-targets fl-static)
 endif()
 
 if(FL_BUILD_BINARY)
     add_executable(fl-bin src/main.cpp)
+    target_include_directories(fl-bin
+    PRIVATE
+        ${PROJECT_SOURCE_DIR})
     set_target_properties(fl-bin PROPERTIES OUTPUT_NAME fuzzylite)
     set_target_properties(fl-bin PROPERTIES OUTPUT_NAME fuzzylite IMPORT_PREFIX tmp-) #To prevent LNK1149 in Windows
     set_target_properties(fl-bin PROPERTIES DEBUG_POSTFIX d)
 
     set_target_properties(fl-bin PROPERTIES COMPILE_DEFINITIONS "FL_IMPORT_LIBRARY")
     target_link_libraries(fl-bin fl-shared ${FL_LIBS})
+    list(APPEND fl-targets fl-bin)
 endif(FL_BUILD_BINARY)
+
+if(FL_BUILD_SHARED OR FL_BUILD_STATIC)
+    target_include_directories(fl-obj
+    PRIVATE
+        ${PROJECT_SOURCE_DIR})
+endif()
 
 ###INSTALL SECTION
 if(NOT FL_INSTALL_BINDIR)
@@ -161,31 +182,16 @@ if(NOT FL_INSTALL_LIBDIR)
     endif()
 endif()
 
-if(FL_BUILD_BINARY)
-    install(TARGETS fl-bin 
-            RUNTIME DESTINATION ${FL_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${FL_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${FL_INSTALL_LIBDIR}
-    )
-endif()
-
-if(FL_BUILD_SHARED)
-    install(TARGETS fl-shared 
-            RUNTIME DESTINATION ${FL_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${FL_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${FL_INSTALL_LIBDIR}
-    )
-endif()
-
-if(FL_BUILD_STATIC)
-    install(TARGETS fl-static
-            RUNTIME DESTINATION ${FL_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${FL_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${FL_INSTALL_LIBDIR}
-    )
-endif()
+install(TARGETS ${fl-targets} EXPORT fuzzylite-config
+    RUNTIME DESTINATION ${FL_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${FL_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${FL_INSTALL_LIBDIR}
+)
+install(EXPORT fuzzylite-config DESTINATION share/fuzzylite/cmake)
+export(TARGETS ${fl-targets} FILE fuzzylite-config.cmake)
 
 install(DIRECTORY fl/ DESTINATION include/fl)
+
 
 #pkg-config
 configure_file(${PROJECT_SOURCE_DIR}/fuzzylite.pc.in ${PROJECT_BINARY_DIR}/fuzzylite.pc @ONLY)
