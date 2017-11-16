@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.11)
-set(FL_VERISON 5.1)
+set(FL_VERSION 5.1)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.0.2") 
     project(fuzzylite CXX)
