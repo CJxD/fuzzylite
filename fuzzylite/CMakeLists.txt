@@ -138,7 +138,7 @@ if(FL_BUILD_SHARED)
 endif()
 
 if(FL_BUILD_STATIC)
-    target_include_directories(fl-shared
+    target_include_directories(fl-static
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>)
