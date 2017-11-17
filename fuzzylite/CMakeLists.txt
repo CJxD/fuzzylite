@@ -169,6 +169,9 @@ if (MSVC OR CMAKE_GENERATOR STREQUAL Xcode)
 else()
     if(FL_BUILD_SHARED OR FL_BUILD_STATIC)
         add_library(fl-obj OBJECT ${fl-headers} ${fl-sources})
+        target_include_directories(fl-obj
+        PRIVATE
+            ${PROJECT_SOURCE_DIR})
         if(NOT MINGW)
             set_target_properties(fl-obj PROPERTIES COMPILE_FLAGS "-fPIC")
         endif()
@@ -211,8 +214,8 @@ endif()
 if(FL_BUILD_BINARY)
     add_executable(fl-bin src/main.cpp)
     target_include_directories(fl-bin
-    PRIVATE
-        ${PROJECT_SOURCE_DIR})
+        PRIVATE
+            ${PROJECT_SOURCE_DIR})
     set_target_properties(fl-bin PROPERTIES OUTPUT_NAME fuzzylite)
     set_target_properties(fl-bin PROPERTIES OUTPUT_NAME fuzzylite IMPORT_PREFIX tmp-) #To prevent LNK1149 in Windows
     set_target_properties(fl-bin PROPERTIES DEBUG_POSTFIX -debug)
@@ -250,13 +253,8 @@ if(FL_BUILD_TESTS)
 #    set_tests_properties(ListTags PROPERTIES PASS_REGULAR_EXPRESSION "[0-9]+ tag")
 endif()
 
-if(FL_BUILD_SHARED OR FL_BUILD_STATIC)
-    target_include_directories(fl-obj
-    PRIVATE
-        ${PROJECT_SOURCE_DIR})
-endif()
-
 ###INSTALL SECTION
+
 if(NOT FL_INSTALL_BINDIR)
     set(FL_INSTALL_BINDIR bin)
 endif()
