@@ -110,9 +110,14 @@ if (MSVC OR CMAKE_GENERATOR STREQUAL Xcode)
 else()
     if(FL_BUILD_SHARED OR FL_BUILD_STATIC)
         add_library(fl-obj OBJECT ${fl-headers} ${fl-sources})
+
+        # The objects need the fuzzylite headers to compile, but
+        # these should only be visile to fl-obj at this time, so
+        # they are marked as PRIVATE.
         target_include_directories(fl-obj
-        PRIVATE
-            ${PROJECT_SOURCE_DIR})
+            PRIVATE
+                ${PROJECT_SOURCE_DIR})
+
         if(NOT MINGW)
             set_target_properties(fl-obj PROPERTIES COMPILE_FLAGS "-fPIC")
         endif()
@@ -128,10 +133,13 @@ else()
 endif()
 
 if(FL_BUILD_SHARED)
+    # The public include directories to be shared with projects that
+    # link to fuzzylite depend on whether they're being included from
+    # source (BUILD_INTERFACE), or from /usr/include (INSTALL_INTERFACE)
     target_include_directories(fl-shared
-    PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>)
+        PUBLIC
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+            $<INSTALL_INTERFACE:include>)
     set_target_properties(fl-shared PROPERTIES OUTPUT_NAME fuzzylite)
     set_target_properties(fl-shared PROPERTIES DEBUG_POSTFIX d)
     set_target_properties(fl-shared PROPERTIES COMPILE_DEFINITIONS "FL_EXPORT_LIBRARY")
@@ -142,9 +150,9 @@ endif()
 
 if(FL_BUILD_STATIC)
     target_include_directories(fl-static
-    PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>)
+        PUBLIC
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+            $<INSTALL_INTERFACE:include>)
     set_target_properties(fl-static PROPERTIES OUTPUT_NAME fuzzylite-static)
     set_target_properties(fl-static PROPERTIES DEBUG_POSTFIX d)
     set_target_properties(fl-static PROPERTIES VERSION 5.1)
@@ -154,6 +162,8 @@ endif()
 
 if(FL_BUILD_BINARY)
     add_executable(fl-bin src/main.cpp)
+    # Likewise to fl-obj, fl-bin should not be linked into other projects.
+    # The includes are marked private.
     target_include_directories(fl-bin
         PRIVATE
             ${PROJECT_SOURCE_DIR})
@@ -172,6 +182,14 @@ if(NOT FL_INSTALL_BINDIR)
     set(FL_INSTALL_BINDIR bin)
 endif()
 
+if(NOT FL_INSTALL_INCLUDEDIR)
+    if(NOT CMAKE_INSTALL_INCLUDEDIR)
+        set(FL_INSTALL_INCLUDEDIR include)
+    else()
+        set(FL_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
+    endif()
+endif()
+
 if(NOT FL_INSTALL_LIBDIR)
     if(NOT CMAKE_INSTALL_LIBDIR)
         set(FL_INSTALL_LIBDIR lib)
@@ -185,10 +203,11 @@ install(TARGETS ${fl-targets} EXPORT fuzzylite-config
     LIBRARY DESTINATION ${FL_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${FL_INSTALL_LIBDIR}
 )
+# Store the fuzzylite CMake config for other projects to use
 install(EXPORT fuzzylite-config DESTINATION share/fuzzylite/cmake)
 export(TARGETS ${fl-targets} FILE fuzzylite-config.cmake)
 
-install(DIRECTORY fl/ DESTINATION include/fl)
+install(DIRECTORY fl/ DESTINATION ${FL_INSTALL_INCLUDEDIR}/fl)
 
 
 #pkg-config
