@@ -111,9 +111,6 @@ else()
     if(FL_BUILD_SHARED OR FL_BUILD_STATIC)
         add_library(fl-obj OBJECT ${fl-headers} ${fl-sources})
 
-        # The objects need the fuzzylite headers to compile, but
-        # these should only be visile to fl-obj at this time, so
-        # they are marked as PRIVATE.
         target_include_directories(fl-obj
             PRIVATE
                 ${PROJECT_SOURCE_DIR})
@@ -183,18 +180,18 @@ if(NOT FL_INSTALL_BINDIR)
 endif()
 
 if(NOT FL_INSTALL_INCLUDEDIR)
-    if(NOT CMAKE_INSTALL_INCLUDEDIR)
-        set(FL_INSTALL_INCLUDEDIR include)
-    else()
+    if(CMAKE_INSTALL_INCLUDEDIR)
         set(FL_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
+    else()
+        set(FL_INSTALL_INCLUDEDIR include)
     endif()
 endif()
 
 if(NOT FL_INSTALL_LIBDIR)
-    if(NOT CMAKE_INSTALL_LIBDIR)
-        set(FL_INSTALL_LIBDIR lib)
-    else()
+    if(CMAKE_INSTALL_LIBDIR)
         set(FL_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+    else()
+        set(FL_INSTALL_LIBDIR lib)
     endif()
 endif()
 
