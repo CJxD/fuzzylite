@@ -371,7 +371,7 @@ namespace fl {
           result was the inverse and indicated whether the counter had overflown
           (most sincere apologies for this change).
          */
-        static bool increment(std::vector<int>& x, int position, std::vector<int>& min, std::vector<int>& max);
+        static bool increment(std::vector<int>& x, std::size_t position, std::vector<int>& min, std::vector<int>& max);
 
         /**
          Computes the sum of the vector
@@ -731,11 +731,13 @@ namespace fl {
     }
 
     inline bool Operation::increment(std::vector<int>& x, std::vector<int>& min, std::vector<int>& max) {
-        return increment(x, -1 + int(x.size()), min, max);
+        if (x.empty()) return false;
+
+        return increment(x, x.size() - 1, min, max);
     }
 
-    inline bool Operation::increment(std::vector<int>& x, int position, std::vector<int>& min, std::vector<int>& max) {
-        if (x.empty() or position < 0) return false;
+    inline bool Operation::increment(std::vector<int>& x, std::size_t position, std::vector<int>& min, std::vector<int>& max) {
+        if (x.empty()) return false;
 
         bool incremented = true;
         if (x.at(position) < max.at(position)) {
@@ -743,9 +745,8 @@ namespace fl {
         } else {
             incremented = !(position == 0);
             x.at(position) = min.at(position);
-            --position;
-            if (position >= 0) {
-                incremented = increment(x, position, min, max);
+            if (position > 0) {
+                incremented = increment(x, position - 1, min, max);
             }
         }
         return incremented;
@@ -849,7 +850,7 @@ namespace fl {
                 result.push_back(token);
             }
             if (next != str.end()) {
-                position = next + delimiter.size();
+                position = next + static_cast<std::string::difference_type>(delimiter.size());
             }
         }
         return result;
@@ -1036,14 +1037,14 @@ namespace fl {
 
     template <> FL_API
     inline std::string Operation::join(int items, const std::string& separator,
-            float first, ...) {
+            double first, ...) {
         std::ostringstream ss;
         ss << str(first);
         if (items > 1) ss << separator;
         va_list args;
         va_start(args, first);
         for (int i = 0; i < items - 1; ++i) {
-            ss << str(va_arg(args, double)); //automatic promotion
+            ss << str(va_arg(args, double));
             if (i + 1 < items - 1) ss << separator;
         }
         va_end(args);

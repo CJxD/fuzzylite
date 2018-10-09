@@ -244,7 +244,7 @@ namespace fl {
           @return a new Discrete term with the given parameters
          */
         template <typename T>
-        static Discrete* create(const std::string& name, int argc,
+        static Discrete* create(const std::string& name, size_t argc,
                 T x1, T y1, ...);
     };
 }
@@ -256,14 +256,14 @@ namespace fl {
 namespace fl {
 
     template <typename T>
-    inline Discrete* Discrete::create(const std::string& name, int argc,
+    inline Discrete* Discrete::create(const std::string& name, size_t argc,
             T x1, T y1, ...) {
         std::vector<scalar> xy(argc);
         xy.at(0) = x1;
         xy.at(1) = y1;
         va_list args;
         va_start(args, y1);
-        for (int i = 2; i < argc; ++i) {
+        for (size_t i = 2; i < argc; ++i) {
             xy.at(i) = (scalar) va_arg(args, T);
         }
         va_end(args);
