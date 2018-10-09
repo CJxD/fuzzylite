@@ -254,7 +254,11 @@ if(FL_BUILD_TESTS)
         target_compile_options(fl-test PRIVATE /wd4130)
     endif()
 
-    target_link_libraries(fl-test fl-shared ${FL_LIBS})
+    if(FL_BUILD_SHARED)
+        target_link_libraries(fl-test fl-shared)
+    elseif(FL_BUILD_STATIC)
+        target_link_libraries(fl-test fl-static)
+    endif()
 
     enable_testing()
     add_test(NAME RunTests COMMAND fl-test)
